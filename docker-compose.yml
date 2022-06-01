@@ -1,0 +1,78 @@
+version: '3'
+services:
+  fluentd-elastic-stack-ver0.0.1-fluent_d:
+    # image: fluent/fluentd:latest
+    build: ${PWD}/fluent_d/
+    container_name: fluentd-elastic-stack-ver0.0.1-fluent_d
+    ports:
+      - "24224:24224"
+      - "24224:24224/udp"
+    volumes:
+      - ./conf:/fluentd/etc
+      - ./log:/fluentd/log
+    depends_on:
+      - fluentd-elastic-stack-ver0.0.1-es
+    networks:
+      fluentd-elastic-stack-ver0.0.1:
+        ipv4_address: 11.254.249.90
+  fluentd-elastic-stack-ver0.0.1-nginx_d:
+    image: nginx
+    container_name: fluentd-elastic-stack-ver0.0.1-nginx_d
+    ports:
+      - "80:80"
+    logging:
+      driver: "fluentd"
+      options:
+        fluentd-address: 11.254.249.90:24224
+        tag: nginx.hello
+        fluentd-async-connect: "true"
+    depends_on:
+      - fluentd-elastic-stack-ver0.0.1-fluent_d
+    networks:
+      fluentd-elastic-stack-ver0.0.1:
+        ipv4_address: 11.254.249.89
+
+  fluentd-elastic-stack-ver0.0.1-es:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.5.1
+    container_name: fluentd-elastic-stack-ver0.0.1-es
+    ports:
+      - 9200:9200
+    environment:
+      - discovery.type=single-node
+      - node.master=true
+      - node.data=true
+      - xpack.security.enabled=false
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms2048m -Xmx2048m"
+    volumes:
+      - ${PWD}/es_data:/usr/share/elasticsearch/data
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    networks:
+      fluentd-elastic-stack-ver0.0.1:
+        ipv4_address: 11.254.249.88
+
+  fluentd-elastic-stack-ver0.0.1-kibana:
+    image: docker.elastic.co/kibana/kibana:7.5.1
+    container_name: fluentd-elastic-stack-ver0.0.1-kibana
+    ports:
+      - 5601:5601
+    environment:
+      ELASTICSEARCH_HOSTS: http://fluentd-elastic-stack-ver0.0.1-es:9200
+    networks:
+      fluentd-elastic-stack-ver0.0.1:
+        ipv4_address: 11.254.249.87
+
+volumes:
+  es_data:
+    driver: local
+
+
+networks:
+  fluentd-elastic-stack-ver0.0.1:
+    ipam:
+      driver: default
+      config:
+        - subnet: 11.254.249.0/24
