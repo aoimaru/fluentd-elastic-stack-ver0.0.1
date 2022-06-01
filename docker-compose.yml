@@ -1,9 +1,9 @@
 version: '3'
 services:
-  fluentd-elastic-stack-ver0.0.1-fluent_d:
+  fluent:
     # image: fluent/fluentd:latest
     build: ${PWD}/fluent_d/
-    container_name: fluentd-elastic-stack-ver0.0.1-fluent_d
+    container_name: fluent
     ports:
       - "24224:24224"
       - "24224:24224/udp"
@@ -11,15 +11,15 @@ services:
       - ${PWD}/conf:/fluentd/etc
       - ${PWD}/log:/fluentd/log
     depends_on:
-      - fluentd-elastic-stack-ver0.0.1-es
+      - es
     networks:
       fluentd-elastic-stack-ver0.0.1:
         ipv4_address: 11.254.249.90
     links:
-      - "fluentd-elastic-stack-ver0.0.1-es"
-  fluentd-elastic-stack-ver0.0.1-nginx_d:
+      - "es"
+  nginx:
     image: nginx
-    container_name: fluentd-elastic-stack-ver0.0.1-nginx_d
+    container_name: nginx
     ports:
       - "80:80"
     logging:
@@ -29,23 +29,23 @@ services:
         tag: nginx.hello
         fluentd-async-connect: "true"
     depends_on:
-      - fluentd-elastic-stack-ver0.0.1-fluent_d
+      - fluent
     networks:
       fluentd-elastic-stack-ver0.0.1:
         ipv4_address: 11.254.249.89
 
-  fluentd-elastic-stack-ver0.0.1-es:
+  es:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.13.1
-    container_name: fluentd-elastic-stack-ver0.0.1-es
+    container_name: es
     ports:
       - 9200:9200
     environment:
       - discovery.type=single-node
-      # - node.master=true
-      # - node.data=true
+      - node.master=true
+      - node.data=true
       - xpack.security.enabled=false
-      # - bootstrap.memory_lock=true
-      # - "ES_JAVA_OPTS=-Xms2048m -Xmx2048m"
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms2048m -Xmx2048m"
     volumes:
       - ${PWD}/es_data:/usr/share/elasticsearch/data
     ulimits:
@@ -59,14 +59,14 @@ services:
         tag: elastic.hello
         fluentd-async-connect: "true"
     depends_on:
-      - fluentd-elastic-stack-ver0.0.1-patch
+      - patch
     networks:
       fluentd-elastic-stack-ver0.0.1:
         ipv4_address: 11.254.249.88
   
-  fluentd-elastic-stack-ver0.0.1-patch:
+  patch:
     image: fluent/fluentd:latest
-    container_name: fluentd-elastic-stack-ver0.0.1-patch
+    container_name: patch
     ports:
       - "24225:24225"
       - "24225:24225/udp"
@@ -80,13 +80,13 @@ services:
     
     
 
-  fluentd-elastic-stack-ver0.0.1-kibana:
-    image: docker.elastic.co/kibana/kibana:7.5.1
-    container_name: fluentd-elastic-stack-ver0.0.1-kibana
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.13.1
+    container_name: kibana
     ports:
       - 5601:5601
     environment:
-      ELASTICSEARCH_HOSTS: http://fluentd-elastic-stack-ver0.0.1-es:9200
+      ELASTICSEARCH_HOSTS: http://es:9200
     networks:
       fluentd-elastic-stack-ver0.0.1:
         ipv4_address: 11.254.249.87
