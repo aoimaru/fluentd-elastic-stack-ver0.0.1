@@ -8,13 +8,15 @@ services:
       - "24224:24224"
       - "24224:24224/udp"
     volumes:
-      - ./conf:/fluentd/etc
-      - ./log:/fluentd/log
+      - ${PWD}/conf:/fluentd/etc
+      - ${PWD}/log:/fluentd/log
     depends_on:
       - fluentd-elastic-stack-ver0.0.1-es
     networks:
       fluentd-elastic-stack-ver0.0.1:
         ipv4_address: 11.254.249.90
+    links:
+      - "fluentd-elastic-stack-ver0.0.1-es"
   fluentd-elastic-stack-ver0.0.1-nginx_d:
     image: nginx
     container_name: fluentd-elastic-stack-ver0.0.1-nginx_d
@@ -33,26 +35,50 @@ services:
         ipv4_address: 11.254.249.89
 
   fluentd-elastic-stack-ver0.0.1-es:
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.5.1
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.13.1
     container_name: fluentd-elastic-stack-ver0.0.1-es
     ports:
       - 9200:9200
     environment:
       - discovery.type=single-node
-      - node.master=true
-      - node.data=true
+      # - node.master=true
+      # - node.data=true
       - xpack.security.enabled=false
-      - bootstrap.memory_lock=true
-      - "ES_JAVA_OPTS=-Xms2048m -Xmx2048m"
+      # - bootstrap.memory_lock=true
+      # - "ES_JAVA_OPTS=-Xms2048m -Xmx2048m"
     volumes:
       - ${PWD}/es_data:/usr/share/elasticsearch/data
     ulimits:
       memlock:
         soft: -1
         hard: -1
+    logging:
+      driver: "fluentd"
+      options:
+        fluentd-address: 11.254.249.86:24225
+        tag: elastic.hello
+        fluentd-async-connect: "true"
+    depends_on:
+      - fluentd-elastic-stack-ver0.0.1-patch
     networks:
       fluentd-elastic-stack-ver0.0.1:
         ipv4_address: 11.254.249.88
+  
+  fluentd-elastic-stack-ver0.0.1-patch:
+    image: fluent/fluentd:latest
+    container_name: fluentd-elastic-stack-ver0.0.1-patch
+    ports:
+      - "24225:24225"
+      - "24225:24225/udp"
+    volumes:
+      - ${PWD}/patch/conf:/fluentd/etc
+      - ${PWD}/patch/log:/fluentd/log
+    
+    networks:
+      fluentd-elastic-stack-ver0.0.1:
+        ipv4_address: 11.254.249.86
+    
+    
 
   fluentd-elastic-stack-ver0.0.1-kibana:
     image: docker.elastic.co/kibana/kibana:7.5.1
