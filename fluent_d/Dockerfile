@@ -1,4 +1,4 @@
-FROM fluent/fluentd:v1.14-1
+FROM fluent/fluentd:v1.11-1
 
 # Use root account to use apk
 USER root
@@ -7,8 +7,8 @@ USER root
 # you may customize including plugins as you wish
 RUN apk add --no-cache --update --virtual .build-deps \
         sudo build-base ruby-dev \
-        && gem install elasticsearch -v 7.5.1 \
-        && sudo gem install fluent-plugin-elasticsearch -v 5.x \
+        && gem install elasticsearch \
+        && sudo gem install fluent-plugin-elasticsearch \
         && sudo gem sources --clear-all \
         && apk del .build-deps \
         && rm -rf /tmp/* /var/tmp/* /usr/lib/ruby/gems/*/cache/*.gem

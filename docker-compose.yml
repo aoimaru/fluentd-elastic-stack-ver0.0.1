@@ -54,7 +54,7 @@ services:
         ipv4_address: 11.254.249.86
 
   fluentd-elastic-stack-ver0.0.1-es:
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.5.1
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.0
     container_name: fluentd-elastic-stack-ver0.0.1-es
     ports:
       - 9200:9200
@@ -76,7 +76,7 @@ services:
         ipv4_address: 11.254.249.88
 
   fluentd-elastic-stack-ver0.0.1-kibana:
-    image: docker.elastic.co/kibana/kibana:7.5.1
+    image: docker.elastic.co/kibana/kibana:7.17.0
     container_name: fluentd-elastic-stack-ver0.0.1-kibana
     ports:
       - 5601:5601
