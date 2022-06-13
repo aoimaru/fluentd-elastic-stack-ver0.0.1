@@ -7,6 +7,8 @@ services:
     ports:
       - "24224:24224"
       - "24224:24224/udp"
+    environment:
+      - FLUENT_ELASTICSEARCH_SSL_VERIFY=false
     volumes:
       - ./conf:/fluentd/etc
       - ./log:/fluentd/log
@@ -15,6 +17,8 @@ services:
     networks:
       fluentd-elastic-stack-ver0.0.1:
         ipv4_address: 11.254.249.90
+    links:
+      - fluentd-elastic-stack-ver0.0.1-es
   fluentd-elastic-stack-ver0.0.1-nginx_d:
     image: nginx
     container_name: fluentd-elastic-stack-ver0.0.1-nginx_d
@@ -31,6 +35,23 @@ services:
     networks:
       fluentd-elastic-stack-ver0.0.1:
         ipv4_address: 11.254.249.89
+  
+  fluentd-elastic-stack-ver0.0.1-nginx_d_1:
+    image: nginx
+    container_name: fluentd-elastic-stack-ver0.0.1-nginx_d_1
+    ports:
+      - "81:80"
+    logging:
+      driver: "fluentd"
+      options:
+        fluentd-address: 11.254.249.90:24224
+        tag: nginx.hello2
+        fluentd-async-connect: "true"
+    depends_on:
+      - fluentd-elastic-stack-ver0.0.1-fluent_d
+    networks:
+      fluentd-elastic-stack-ver0.0.1:
+        ipv4_address: 11.254.249.86
 
   fluentd-elastic-stack-ver0.0.1-es:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.5.1
